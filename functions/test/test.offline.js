@@ -38,33 +38,28 @@ describe('Cloud Functions', () => {
     // Test Case: setting messages/{pushId}/original to 'input' should cause 'INPUT' to be written to
     // messages/{pushId}/uppercase
     it('should upper case input and write it to /uppercase', () => {
-      const childParam = 'uppercase';
-      const setParam = 'INPUT';
+      const setParam = {uppercase: 'INPUT'};
       // Stubs are objects that fake and/or record function calls.
       // These are excellent for verifying that functions have been called and to validate the
       // parameters passed to those functions.
-      const childStub = sinon.stub();
-      const setStub = sinon.stub();
-      // [START fakeSnap]
+      const updateStub = sinon.stub();
       // The following lines creates a fake snapshot, 'snap', which returns 'input' when snap.val() is called,
-      // and returns true when snap.ref.parent.child('uppercase').set('INPUT') is called.
+      // and returns true when snap.ref.update({uppercase: "INPUT"}) is called.
+      const original = {
+        val: () => 'input'
+      }
       const snap = {
-        val: () => 'input',
-        ref: {
-          parent: {
-            child: childStub,
-          }
+        child: (original) => { return original },
+        ref: { 
+          update: updateStub
         }
       };
-      childStub.withArgs(childParam).returns({ set: setStub });
-      setStub.withArgs(setParam).returns(true);
-      // [END fakeSnap]
+      updateStub.withArgs(setParam).returns(true);
       // Wrap the makeUppercase function.
       const wrapped = test.wrap(myFunctions.makeUppercase);
-      // Since we've stubbed snap.ref.parent.child(childParam).set(setParam) to return true if it was
+      // Since we've stubbed snap.ref.update(setParam) to return true if it was
       // called with the parameters we expect, we assert that it indeed returned true.
       return assert.equal(wrapped(snap), true);
-      // [END assertOffline]
     })
   });
 
